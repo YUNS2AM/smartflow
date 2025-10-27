@@ -161,6 +161,15 @@ async def upload_order_excel(
     
     for order_data in orders_list:
         try:
+
+            if 'due_date' in order_data and order_data['due_date'] and isinstance(order_data['due_date'], str):
+                try:
+                    order_data['due_date'] = datetime.strptime(order_data['due_date'], '%Y-%m-%d').date()
+                except ValueError:
+                    # 날짜 형식이 잘못된 경우 에러 처리
+                    errors.append(f"{order_data.get('order_number', 'N/A')}: 'due_date' 날짜 형식이 잘못되었습니다 (YYYY-MM-DD 필요).")
+                    continue # 이 주문은 건너뛰기
+                
             # 중복 체크
             existing = db.query(Order).filter(
                 Order.order_number == order_data['order_number']
